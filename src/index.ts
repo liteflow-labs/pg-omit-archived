@@ -262,13 +262,21 @@ const makeUtils = (
             )} = ${myAlias}.${sql.identifier(otherAttr.name)}`;
           },
         );
+        const relationConditionsNullable = relevantRelation.keyAttributes.map(
+          (attr) => {
+            return sql.fragment`${localAlias}.${sql.identifier(
+              attr.name,
+            )} IS NULL`
+          }
+        );
         const subquery = sql.fragment`exists (select 1 from ${sql.identifier(
           relevantClass.namespaceName,
           relevantClass.name,
         )} as ${myAlias} where (${sql.join(
           relationConditions,
           ") and (",
-        )}) and (${fragment}))`;
+        )}) and (${fragment}))
+        OR (${sql.join(relationConditionsNullable, ' OR ')})`;
         queryBuilder.where(subquery);
       } else {
         queryBuilder.where(fragment);
